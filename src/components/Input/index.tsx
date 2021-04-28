@@ -39,7 +39,6 @@ const Input: React.FC<InputProps> = ({ name, icon: Icon, ...rest }) => {
 
   const handleInputBlur = useCallback(() => {
     setIsFocused(false);
-
     /** Transforma conteúdo em boolean e verifica se campo do input possui valor */
     setIsFilled(!!inputRef.current?.value);
   }, []);
@@ -60,9 +59,9 @@ const Input: React.FC<InputProps> = ({ name, icon: Icon, ...rest }) => {
     <Container isErrored={!!error} isFilled={isFilled} isFocused={isFocused}>
       {Icon && <Icon size={20} />}
       <input
+        defaultValue={defaultValue}
         onFocus={handleInputFocus}
         onBlur={handleInputBlur}
-        defaultValue={defaultValue}
         ref={inputRef}
         {...rest}
       />
