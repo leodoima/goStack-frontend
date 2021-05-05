@@ -4,10 +4,11 @@ import { FormHandles } from '@unform/core';
 import { Form } from '@unform/web';
 import * as Yup from 'yup';
 
-import getValidationErrors from '../../utils/getValidationErrors';
 import logoImg from '../../assets/logo.svg';
+import { useAuth } from '../../hooks/auth';
+import { useToast } from '../../hooks/toast';
 import { Container, Content, Background } from './styles';
-import { useAuth } from '../../hooks/AuthContext';
+import getValidationErrors from '../../utils/getValidationErrors';
 
 import Input from '../../components/Input';
 import Button from '../../components/Button';
@@ -21,35 +22,44 @@ const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
 
   const { signIn } = useAuth();
+  const { addToast } = useToast();
 
-  const handleSubmit = useCallback(async (data: SignInFormData) => {
-    try {
-      formRef.current?.setErrors({}); // setando erros para vazio
+  const handleSubmit = useCallback(
+    async (data: SignInFormData) => {
+      try {
+        formRef.current?.setErrors({}); // setando erros para vazio
 
-      /** Verificando conteúdo recebido do input */
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .required('E-mail obrigatório')
-          .email('Digite um e-mail válido'),
-        password: Yup.string().required('Senha obrigatória'),
-      });
+        /** Verificando conteúdo recebido do input */
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .required('E-mail obrigatório')
+            .email('Digite um e-mail válido'),
+          password: Yup.string().required('Senha obrigatória'),
+        });
 
-      await schema.validate(data, {
-        abortEarly: false /** Força retorno de todos os erros encontrados e não apenas o primeiro  */,
-      });
+        await schema.validate(data, {
+          abortEarly: false /** Força retorno de todos os erros encontrados e não apenas o primeiro  */,
+        });
 
-      signIn({
-        email: data.email,
-        password: data.password,
-      });
-    } catch (err) {
-      // verifica se erro gerado foi do Yup (verificação do input)
-      if (err instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(err);
-        formRef.current?.setErrors(errors);
+        await signIn({
+          email: data.email,
+          password: data.password,
+        });
+      } catch (err) {
+        // verifica se erro gerado foi do Yup (verificação do input)
+        if (err instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(err);
+          formRef.current?.setErrors(errors);
+        }
+        addToast({
+          type: 'error',
+          title: 'Erro na autenticação',
+          description: 'Ocorreu um erro ao fazer login, cheque as credenciais.',
+        });
       }
-    }
-  }, []);
+    },
+    [signIn, addToast],
+  );
 
   return (
     <Container>
